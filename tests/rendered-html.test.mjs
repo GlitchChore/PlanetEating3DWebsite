@@ -35,8 +35,11 @@ test("server-renders the Planet Eating landing page", async () => {
   assert.match(html, /<title>Planet Eating/);
   assert.match(html, /Eine Welt\./);
   assert.match(html, /Zehn Teams\./);
-  assert.match(html, /Noch nicht auf der Webseite verfügbar/);
-  assert.match(html, /DOWNLOAD FOLGT/);
+  assert.match(html, /KONTO ÖFFNEN/);
+  assert.match(html, /NEUES KONTO ERSTELLEN/);
+  assert.match(html, /Deine ID bleibt geheim/);
+  assert.match(html, /WINDOWS-DOWNLOAD/);
+  assert.match(html, /href="\/api\/release"/);
   assert.match(html, /http:\/\/localhost\/og\.png/);
   assert.doesNotMatch(html, /codex-preview|SkeletonPreview|react-loading-skeleton/);
 });
@@ -54,4 +57,25 @@ test("removes the temporary starter preview", async () => {
   await assert.rejects(access(new URL("../app/_sites-preview", import.meta.url)));
   await access(new URL("../public/og.png", import.meta.url));
   await access(new URL(".openai/hosting.json", templateRoot));
+  await access(new URL("../app/api/account/route.ts", import.meta.url));
+  await access(new URL("../.env.example", import.meta.url));
+});
+
+test("rejects an incomplete game ID before contacting Supabase", async () => {
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("account-test", `${process.pid}-${Date.now()}`);
+  const { default: worker } = await import(workerUrl.href);
+
+  const response = await worker.fetch(
+    new Request("http://localhost/api/account", {
+      method: "POST",
+      headers: { "content-type": "application/json", host: "localhost" },
+      body: JSON.stringify({ action: "load", gameId: "zu-kurz" }),
+    }),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+
+  assert.equal(response.status, 400);
+  assert.match(JSON.stringify(await response.json()), /nicht vollständig/);
 });

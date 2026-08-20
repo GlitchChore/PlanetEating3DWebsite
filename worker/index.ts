@@ -5,6 +5,8 @@ import handler from "vinext/server/app-router-entry";
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
+  RELEASES: R2Bucket;
+  RELEASE_UPLOAD_SECRET?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -28,6 +30,41 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.pathname === "/api/release") {
+      const fileName = "PlanetEating3D-Windows.zip";
+      if (request.method === "PUT") {
+        const suppliedSecret = request.headers.get("x-release-secret");
+        if (!env.RELEASE_UPLOAD_SECRET || suppliedSecret !== env.RELEASE_UPLOAD_SECRET) {
+          return new Response("Nicht erlaubt", { status: 401 });
+        }
+        if (!request.body) {
+          return new Response("Datei fehlt", { status: 400 });
+        }
+
+        await env.RELEASES.put(fileName, request.body, {
+          httpMetadata: { contentType: "application/zip" },
+        });
+        return Response.json({ uploaded: true });
+      }
+
+      if (request.method === "GET" || request.method === "HEAD") {
+        const release = await env.RELEASES.get(fileName);
+        if (!release) {
+          return new Response("Der Windows-Build wird gerade vorbereitet.", { status: 404 });
+        }
+
+        const headers = new Headers();
+        release.writeHttpMetadata(headers);
+        headers.set("Content-Disposition", `attachment; filename="${fileName}"`);
+        headers.set("Content-Length", release.size.toString());
+        headers.set("ETag", release.httpEtag);
+        headers.set("Cache-Control", "public, max-age=300");
+        return new Response(request.method === "HEAD" ? null : release.body, { headers });
+      }
+
+      return new Response("Methode nicht erlaubt", { status: 405 });
+    }
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];

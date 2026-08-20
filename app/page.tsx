@@ -1,3 +1,5 @@
+import AccountPanel from "./account-panel";
+
 export default function Home() {
   return (
     <main>
@@ -83,23 +85,18 @@ export default function Home() {
         <div>
           <p className="eyebrow">DEIN SPIELKONTO</p>
           <h2>Eine ID für deinen Fortschritt.</h2>
-          <p>Im Spiel erhältst du eine geheime Spiel-ID. Damit kannst du deinen Namen, deine Einstellungen und gespielte Runden auf einem anderen Computer wiederfinden.</p>
-          <div className="notice"><strong>Noch nicht auf der Webseite verfügbar</strong><span>Das Anmelden und Bearbeiten des Profils folgt in einem späteren Schritt. Benutze deine Spiel-ID bis dahin nur im Unity-Spiel.</span></div>
+          <p>Öffne dein vorhandenes Konto oder erstelle ein neues. Name, Einstellungen und gespielte Runden werden zwischen Webseite und Spiel geteilt.</p>
+          <div className="notice"><strong>Deine ID bleibt geheim</strong><span>Wer deine vollständige Spiel-ID kennt, kann dein Konto öffnen. Speichere sie deshalb an einem sicheren Ort.</span></div>
         </div>
-        <div className="account-preview" aria-label="Vorschau des späteren Kontobereichs">
-          <span className="preview-label">KONTO-VORSCHAU</span>
-          <label htmlFor="game-id">GEHEIME SPIEL-ID</label>
-          <input id="game-id" value="PE3D-•••••-•••••-•••••-•••••-•••••" readOnly disabled />
-          <button disabled>NOCH NICHT VERFÜGBAR</button>
-          <small>Teile deine vollständige ID niemals öffentlich.</small>
-        </div>
+        <AccountPanel />
       </section>
 
       <section className="download-section" id="download">
-        <p className="eyebrow">FÜR WINDOWS GEPLANT</p>
+        <p className="eyebrow">FÜR WINDOWS 10 UND 11</p>
         <h2>Bereit für deine erste Insel?</h2>
-        <p>Ein öffentlicher Spiel-Download ist noch nicht veröffentlicht.</p>
-        <button className="button disabled" disabled>DOWNLOAD FOLGT</button>
+        <p>Lade den aktuellen 64-Bit-Prototyp als ZIP-Datei herunter. Entpacke ihn und starte danach <strong>PlanetEating3D.exe</strong>.</p>
+        <a className="button primary download-button" href="/api/release">WINDOWS-DOWNLOAD <span aria-hidden="true">↓</span></a>
+        <small>Der Online-Modus und Boss 2 werden noch vollständig geprüft.</small>
       </section>
 
       <footer>
